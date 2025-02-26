@@ -44,6 +44,9 @@ This repository provides a guide and an automated script to set up a **Minecraft
    apt update && apt install -y qemu-guest-agent
    ```
 
+![Minecraft Server Setup](https://github.com/TimInTech/minecraft-server-Proxmox/blob/main/minecraft-setup.png?raw=true)
+
+
 ### **2️⃣ Run the Minecraft Server Setup Script**
 ```bash
 wget https://raw.githubusercontent.com/TimInTech/minecraft-server-Proxmox/main/setup_minecraft.sh
