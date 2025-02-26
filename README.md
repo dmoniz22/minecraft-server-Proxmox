@@ -1,149 +1,138 @@
-### 📁 `INSTALL.md`
-
 ```markdown
-# 🚀 Minecraft Server Installation on Debian in Proxmox CT
+# 🖥️ Minecraft Server on Proxmox
 
-## Prerequisites:
+This repository provides a guide and an automated script to set up a **Minecraft server** on **Proxmox** using either a **Virtual Machine (VM) or an LXC container**.
 
-1. A running Debian instance in Proxmox CT.
-2. Root or sudo access to the instance.
+---
 
-## Installation Steps:
+## 📌 **Features**
+✅ Automated installation of Minecraft Java/Bedrock servers  
+✅ Works with Proxmox VM or LXC container  
+✅ Performance optimizations included  
+✅ Customizable settings  
 
-1. **Update and Upgrade**:
+---
+
+## 🚀 **Installation Guide (Proxmox VM)**  
+
+### **1️⃣ Create a Proxmox VM**
+1. Open **Proxmox Web Interface** → Click on **"Create VM"**  
+2. **General Settings**:  
+   - Name: `Minecraft-Server`  
+
+3. **OS Selection**:  
+   - Use a **Debian 11/12** or **Ubuntu 22.04** ISO image.  
+
+4. **System Configuration**:  
+   - BIOS: **OVMF (UEFI) or SeaBIOS**  
+   - Machine Type: **q35** (recommended)  
+
+5. **Disk & Storage**:  
+   - **20GB+ Storage** (depending on world size)  
+   - Storage Type: **`virtio` (for best performance)**  
+
+6. **CPU & RAM**:  
+   - **2 vCPUs (4 recommended)**  
+   - **4GB RAM (8GB recommended)**  
+
+7. **Network**:  
+   - Model: **VirtIO (paravirtualized)**  
+   - Enable **QEMU Guest Agent** after installation  
+
+8. **Finalize the installation and run:**  
    ```bash
-   apt update && apt upgrade -y
+   apt update && apt install -y qemu-guest-agent
    ```
 
-2. **Install Java**:
-   ```bash
-   apt install openjdk-17-jre-headless -y
-   ```
-
-3. **Create a Directory for Minecraft**:
-   ```bash
-   mkdir minecraft_server
-   cd minecraft_server
-   ```
-
-4. **Download the Minecraft Server**:
-   ```bash
-   wget [URL_TO_MINECRAFT_SERVER.JAR]
-   ```
-
-5. **Start the Server**:
-   ```bash
-   java -Xmx1024M -Xms1024M -jar server.jar nogui
-   ```
-
-6. **Accept the EULA**:
-   - Edit the `eula.txt` file and change `eula=false` to `eula=true`.
-
-7. **Restart the Server**:
-   ```bash
-   java -Xmx1024M -Xms1024M -jar server.jar nogui
-   ```
-
-**Note**: Replace `[URL_TO_MINECRAFT_SERVER.JAR]` with the actual URL to download the Minecraft server jar file.
+### **2️⃣ Run the Minecraft Server Setup Script**
+```bash
+wget https://raw.githubusercontent.com/TimInTech/minecraft-server-Proxmox/main/setup_minecraft.sh
+chmod +x setup_minecraft.sh
+./setup_minecraft.sh
 ```
 
 ---
 
-### 📁 `COMMANDS.md`
+## 🛠️ **Installation Guide (Proxmox LXC Container)**  
 
-```markdown
-# 🎮 Minecraft Server Commands Guide 🛠️
+### **1️⃣ Create a Proxmox LXC Container**
+1. Open **Proxmox Web Interface** → Click on **"Create CT"**  
+2. **General Settings**:  
+   - Name: `Minecraft-LXC`  
 
-## 🖥️ Console Commands:
+3. **Template Selection**:  
+   - Choose a **Debian 11/12** template.  
 
-### Server Control:
+4. **CPU & RAM**:  
+   - **4GB RAM (8GB recommended)**  
+   - **2 vCPUs (4 recommended)**  
 
-1. **Starting the server**:
-   ```bash
-   java -Xmx1024M -Xms1024M -jar server.jar nogui
-   ```
+5. **Disk & Storage**:  
+   - **10GB+ Storage**  
+   - Storage Type: **`ext4` (recommended for LXC)**  
 
-2. **Stopping the server**:
-   ```bash
-   stop
-   ```
+6. **Advanced Settings**:  
+   - Enable **"Nestling"** under Features (for Java support)  
 
-3. **Restarting the server**:
-   - First, use the `stop` command and then execute the start command again.
+7. **Finalize and start the container.**  
 
-### Server Settings:
-
-1. **Editing server.properties**:
-   ```bash
-   nano /path/to/server/server.properties
-   ```
-
-2. **Editing the whitelist**:
-   ```bash
-   nano whitelist.json
-   ```
-
-3. **Editing Ops (Admins)**:
-   ```bash
-   nano ops.json
-   ```
-
-## 🎲 In-Game (Chat) Commands:
-
-### General Commands:
-
-1. **Help**:
-   ```
-   /help
-   ```
-
-2. **Set Game Mode**:
-   ```
-   /gamemode <mode> <player>
-   ```
-
-3. **Kick a Player**:
-   ```
-   /kick <player>
-   ```
-
-4. **Ban a Player**:
-   ```
-   /ban <player>
-   ```
-
-5. **Pardon (Unban) a Player**:
-   ```
-   /pardon <player>
-   ```
-
-6. **Whitelist a Player**:
-   ```
-   /whitelist add <player>
-   ```
-
-7. **Remove a Player from Whitelist**:
-   ```
-   /whitelist remove <player>
-   ```
-
-8. **Change Time**:
-   ```
-   /time set <value>
-   ```
-
-9. **Change Weather**:
-   ```
-   /weather <type>
-   ```
-
-10. **Teleport**:
-   ```
-   /tp <destination>
-   ```
-
-**Note**: Some commands may require admin privileges to execute.
+### **2️⃣ Run the LXC Setup Script**
+```bash
+wget https://raw.githubusercontent.com/TimInTech/minecraft-server-Proxmox/main/setup_minecraft_lxc.sh
+chmod +x setup_minecraft_lxc.sh
+./setup_minecraft_lxc.sh
 ```
 
 ---
 
+## 🔧 **Configuration & Server Management**
+- **Edit Server Properties:**  
+  ```bash
+  nano /opt/minecraft/server.properties
+  ```
+
+- **Start/Stop the Server:**  
+  ```bash
+  systemctl start minecraft
+  systemctl stop minecraft
+  ```
+
+- **Check Logs:**  
+  ```bash
+  tail -f /opt/minecraft/logs/latest.log
+  ```
+
+---
+
+## 🌐 **Port Forwarding for External Access**
+To allow external players to connect, open port **25565** on your firewall:
+
+```bash
+ufw allow 25565/tcp
+```
+
+For **LXC containers**, use NAT forwarding:
+
+```bash
+iptables -t nat -A PREROUTING -i vmbr0 -p tcp --dport 25565 -j DNAT --to-destination 192.168.1.100:25565
+```
+
+---
+
+## 🎮 **Bedrock Server (Windows & Console Support)**
+If you want to run a **Minecraft Bedrock Server** (for Windows, Xbox, and mobile players), use the following script:
+
+```bash
+wget https://raw.githubusercontent.com/TimInTech/minecraft-server-Proxmox/main/setup_bedrock.sh
+chmod +x setup_bedrock.sh
+./setup_bedrock.sh
+```
+
+---
+
+## 🤝 **Contribute**
+- Found a bug? **Open an Issue**  
+- Want to improve the script? **Submit a Pull Request**  
+
+🚀 Happy gaming! 🎮  
+```
