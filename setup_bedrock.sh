@@ -11,7 +11,7 @@ apt update && apt install -y unzip wget screen
 mkdir -p /opt/minecraft-bedrock && cd /opt/minecraft-bedrock
 
 # Download Bedrock Server
-wget -O bedrock-server.zip https://minecraft.azureedge.net/bin-linux/bedrock-server-1.20.50.02.zip
+wget -O bedrock-server.zip https://www.minecraft.net/bedrockdedicatedserver/bin-linux/bedrock-server-1.21.62.01.zip
 unzip bedrock-server.zip
 
 # Create a Start Script
