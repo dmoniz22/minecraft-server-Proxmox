@@ -1,4 +1,3 @@
-```markdown
 # 🖥️ Minecraft Server on Proxmox
 
 This repository provides a guide and an automated script to set up a **Minecraft server** on **Proxmox** using either a **Virtual Machine (VM) or an LXC container**.
@@ -9,14 +8,18 @@ This repository provides a guide and an automated script to set up a **Minecraft
 ✅ Automated installation of Minecraft Java/Bedrock servers  
 ✅ Works with Proxmox VM or LXC container  
 ✅ Performance optimizations included  
-✅ Customizable settings  
+✅ Customizable settings
+
+  
+
+---
+## 🚀 **Installation Guide (Proxmox VM)**  
 
 ---
 
-## 🚀 **Installation Guide (Proxmox VM)**  
-
 ### **1️⃣ Create a Proxmox VM**
-1. Open **Proxmox Web Interface** → Click on **"Create VM"**  
+
+1. **Open Proxmox Web Interface** → Click on **"Create VM"**  
 2. **General Settings**:  
    - Name: `Minecraft-Server`  
 
@@ -43,6 +46,7 @@ This repository provides a guide and an automated script to set up a **Minecraft
    ```bash
    apt update && apt install -y qemu-guest-agent
    ```
+
 
 ![Minecraft Server Setup](https://github.com/TimInTech/minecraft-server-Proxmox/blob/main/minecraft-setup.png?raw=true)
 
