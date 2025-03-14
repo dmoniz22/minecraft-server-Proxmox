@@ -1,24 +1,27 @@
 # 🖥️ Minecraft Server on Proxmox
 
-
-![Minecraft Server Setup](https://github.com/TimInTech/minecraft-server-Proxmox/blob/main/minecraft-setup.png?raw=true)
+![🛠️ Minecraft Server Setup](https://github.com/TimInTech/minecraft-server-Proxmox/blob/main/minecraft-setup.png?raw=true)
 This repository provides a guide and an automated script to set up a **Minecraft server** on **Proxmox** using either a **Virtual Machine (VM) or an LXC container**.
 
 ---
 
-## 📌 **Features**
-✅ Automated installation of Minecraft Java/Bedrock servers  
-✅ Works with Proxmox VM or LXC container  
-✅ Performance optimizations included  
-✅ Customizable settings
+## 🔗 **Support This Project**
+If you find this guide helpful and want to support the project, consider purchasing through this affiliate link:  
+**🖥️ [NiPoGi AK1PLUS Mini PC – Intel Alder Lake-N N100](https://amzn.to/3FvH4GX)**  
+By using this link, you support the project at no additional cost to you. Thank you! 🙌
 
-  
+---
+
+## 📌 **Features**
+✅ 🏗️ Automated installation of Minecraft Java/Bedrock servers  
+✅ 🖥️ Works with Proxmox VM or LXC container  
+✅ ⚡ Performance optimizations included  
+✅ 🎛️ Customizable settings  
+✅ ⛏️ Uses official Minecraft Bedrock Emojis where applicable  
 
 ---
 ## 🚀 **Installation Guide (Proxmox VM)**  
-
 ---
-
 ### **1️⃣ Create a Proxmox VM**
 
 1. **Open Proxmox Web Interface** → Click on **"Create VM"**  
@@ -33,23 +36,22 @@ This repository provides a guide and an automated script to set up a **Minecraft
    - Machine Type: **q35** (recommended)  
 
 5. **Disk & Storage**:  
-   - **20GB+ Storage** (depending on world size)  
+   - **💾 20GB+ Storage** (depending on world size)  
    - Storage Type: **`virtio` (for best performance)**  
 
 6. **CPU & RAM**:  
-   - **2 vCPUs (4 recommended)**  
-   - **4GB RAM (8GB recommended)**  
+   - **🖥️ 2 vCPUs (4 recommended)**  
+   - **💾 4GB RAM (8GB recommended)**  
 
 7. **Network**:  
    - Model: **VirtIO (paravirtualized)**  
    - Enable **QEMU Guest Agent** after installation  
 
-8. **Finalize the installation and run:**  
+8. **Finalize the installation and update the system:**  
    ```bash
-   apt update && apt install -y qemu-guest-agent
+   apt update && apt full-upgrade -y
+   apt install -y curl wget nano screen unzip git openjdk-17-jre-headless
    ```
-
-
 
 ### **2️⃣ Run the Minecraft Server Setup Script**
 ```bash
@@ -58,88 +60,79 @@ chmod +x setup_minecraft.sh
 ./setup_minecraft.sh
 ```
 
+🔹 **For manual installation, see [Manual Installation](#manual-installation)**
+
 ---
 
-## 🛠️ **Installation Guide (Proxmox LXC Container)**  
+## 🔍 **Troubleshooting & Solutions**
 
-### **1️⃣ Create a Proxmox LXC Container**
-1. Open **Proxmox Web Interface** → Click on **"Create CT"**  
-2. **General Settings**:  
-   - Name: `Minecraft-LXC`  
+### **1️⃣ Minecraft server did not start because no Systemd service exists**
+**Error:** `Unit minecraft.service could not be found.`
 
-3. **Template Selection**:  
-   - Choose a **Debian 11/12** template.  
-
-4. **CPU & RAM**:  
-   - **4GB RAM (8GB recommended)**  
-   - **2 vCPUs (4 recommended)**  
-
-5. **Disk & Storage**:  
-   - **10GB+ Storage**  
-   - Storage Type: **`ext4` (recommended for LXC)**  
-
-6. **Advanced Settings**:  
-   - Enable **"Nestling"** under Features (for Java support)  
-
-7. **Finalize and start the container.**  
-
-### **2️⃣ Run the LXC Setup Script**
+#### **Solution: Create the service manually**
+Create a Systemd service file for the Minecraft server:
 ```bash
-wget https://raw.githubusercontent.com/TimInTech/minecraft-server-Proxmox/main/setup_minecraft_lxc.sh
-chmod +x setup_minecraft_lxc.sh
-./setup_minecraft_lxc.sh
+nano /etc/systemd/system/minecraft.service
+```
+Insert the following content:
+```ini
+[Unit]
+Description=Minecraft Server
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/minecraft
+ExecStart=/bin/bash /opt/minecraft/start.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+Save with `CTRL + X`, `Y`, `ENTER`.
+
+Then enable and start the service:
+```bash
+systemctl daemon-reload
+systemctl enable minecraft
+systemctl start minecraft
+systemctl status minecraft
 ```
 
----
+### **2️⃣ `server.jar` is empty**
+**Error:** `ls -l /opt/minecraft/` shows that the file is 0 bytes:
+```bash
+-rw-r--r-- 1 root root  0 Mar 14 00:27 server.jar
+```
 
-## 🔧 **Configuration & Server Management**
-- **Edit Server Properties:**  
-  ```bash
-  nano /opt/minecraft/server.properties
-  ```
+#### **Solution: Download a valid `server.jar` and replace the empty file**
+For PaperMC:
+```bash
+wget -O /opt/minecraft/server.jar https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/450/downloads/paper-1.20.4-450.jar
+```
+For Vanilla Minecraft:
+```bash
+wget -O /opt/minecraft/server.jar https://www.minecraft.net/en-us/download/server
+```
+(Check the official [Minecraft website](https://www.minecraft.net/en-us/download/server) for the latest version.)
 
-- **Start/Stop the Server:**  
-  ```bash
-  systemctl start minecraft
-  systemctl stop minecraft
-  ```
+Then restart the server:
+```bash
+systemctl restart minecraft
+```
 
-- **Check Logs:**  
-  ```bash
-  tail -f /opt/minecraft/logs/latest.log
-  ```
-
----
-
-## 🌐 **Port Forwarding for External Access**
-To allow external players to connect, open port **25565** on your firewall:
-
+### **3️⃣ `ufw` is inactive**
+**Solution:** If using a firewall, open the Minecraft port:
 ```bash
 ufw allow 25565/tcp
-```
-
-For **LXC containers**, use NAT forwarding:
-
-```bash
-iptables -t nat -A PREROUTING -i vmbr0 -p tcp --dport 25565 -j DNAT --to-destination 192.168.1.100:25565
-```
-
----
-
-## 🎮 **Bedrock Server (Windows & Console Support)**
-If you want to run a **Minecraft Bedrock Server** (for Windows, Xbox, and mobile players), use the following script:
-
-```bash
-wget https://raw.githubusercontent.com/TimInTech/minecraft-server-Proxmox/main/setup_bedrock.sh
-chmod +x setup_bedrock.sh
-./setup_bedrock.sh
+ufw allow 25565/tcp6
+ufw enable
 ```
 
 ---
 
 ## 🤝 **Contribute**
-- Found a bug? **Open an Issue**  
-- Want to improve the script? **Submit a Pull Request**  
+- Found a bug? **🐛 Open an Issue**  
+- Want to improve the script? **⚙️ Submit a Pull Request**  
 
-🚀 Happy gaming! 🎮  
-```
+🚀 Happy gaming! 🎮
