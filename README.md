@@ -1,174 +1,230 @@
-# 🖥️ Minecraft Server on Proxmox
+# 🧱 **Minecraft Server on Proxmox** 🌍
 
-![🛠️ Minecraft Server Setup](https://github.com/TimInTech/minecraft-server-Proxmox/blob/main/minecraft-setup.png?raw=true)
-This repository provides a guide and an automated script to set up a **Minecraft server** on **Proxmox** using either a **Virtual Machine (VM) or an LXC container**.
+![⛏️ Minecraft Server Setup](https://github.com/TimInTech/minecraft-server-Proxmox/blob/main/minecraft-setup.png?raw=true)
 
----
-
-## 🔗 **Support This Project**
-If you find this guide helpful and want to support the project, consider purchasing through this affiliate link:  
-**🖥️ [NiPoGi AK1PLUS Mini PC – Intel Alder Lake-N N100](https://amzn.to/3FvH4GX)**  
-By using this link, you support the project at no additional cost to you. Thank you! 🙌
+This repository provides a guide and automated scripts to set up a **Minecraft server** on **Proxmox** using either a **Virtual Machine (VM)** or an **LXC container**.
 
 ---
 
-## 📌 **Features**
-✅ 🏗️ Automated installation of Minecraft Java/Bedrock servers  
-✅ 🖥️ Works with Proxmox VM or LXC container  
-✅ ⚡ Performance optimizations included  
-✅ 🎛️ Customizable settings  
-✅ ⛏️ Uses official Minecraft Bedrock Emojis where applicable  
+## 🔗 **Support This Project** 💎  
+If you find this guide helpful, consider purchasing through this affiliate link:  
+**⛏️ [NiPoGi AK1PLUS Mini PC – Intel Alder Lake-N N100](https://amzn.to/3FvH4GX)**  
+Using this link supports the project at no additional cost to you. Thank you! 🙌
 
 ---
-## 🚀 **Installation Guide (Proxmox VM)**  
+
+## 📌 **Features** 🗺️  
+✅ **Automated installation** of Minecraft Java/Bedrock servers  
+✅ Works with **Proxmox VM** or **LXC container**  
+✅ **Performance optimizations** included (RAM allocation, CPU prioritization)  
+✅ Customizable settings (world generation, plugins, mods)  
+✅ **Minecraft-themed emojis** throughout the guide  
+
 ---
-### **1️⃣ Create a Proxmox VM**
 
-1. **Open Proxmox Web Interface** → Click on **"Create VM"**  
-2. **General Settings**:  
-   - Name: `Minecraft-Server`  
+## 💎 **Installation Guide (Proxmox VM)** 🖥️
 
-3. **OS Selection**:  
-   - Use a **Debian 11/12** or **Ubuntu 22.04** ISO image.  
+### **1️⃣ Create a Proxmox VM** 🛠️  
+- Open Proxmox Web Interface → Click on **"Create VM"**  
+- **General Settings**:  
+  - Name: `Minecraft-Server`  
+- **OS Selection**:  
+  - Use a **Debian 11/12** or **Ubuntu 22.04** ISO image  
+- **System Configuration**:  
+  - BIOS: **OVMF (UEFI) or SeaBIOS**  
+  - Machine Type: **q35** (recommended)  
+- **Disk & Storage**:  
+  - **20GB+ Storage** (depending on world size)  
+  - Storage Type: **`virtio`** (recommended)  
+- **CPU & RAM**:  
+  - 2 vCPUs (recommended: 4)  
+  - 4GB RAM (recommended: 8GB)  
+- **Network**:  
+  - Model: **VirtIO**  
+  - Enable **QEMU Guest Agent** after installation  
 
-4. **System Configuration**:  
-   - BIOS: **OVMF (UEFI) or SeaBIOS**  
-   - Machine Type: **q35** (recommended)  
-
-5. **Disk & Storage**:  
-   - **💾 20GB+ Storage** (depending on world size)  
-   - Storage Type: **`virtio` (for best performance)**  
-
-6. **CPU & RAM**:  
-   - **🖥️ 2 vCPUs (4 recommended)**  
-   - **💾 4GB RAM (8GB recommended)**  
-
-7. **Network**:  
-   - Model: **VirtIO (paravirtualized)**  
-   - Enable **QEMU Guest Agent** after installation  
-
-8. **Finalize the installation and update the system:**  
-   ```bash
-   apt update && apt upgrade -y
-   apt install -y curl wget nano screen unzip git openjdk-17-jre-headless
-   ```
-
-### **2️⃣ Run the Minecraft Server Setup Script**
+### **Install Dependencies** ⚙️  
 ```bash
-wget https://raw.githubusercontent.com/TimInTech/minecraft-server-Proxmox/main/setup_minecraft.sh
-chmod +x setup_minecraft.sh
-./setup_minecraft.sh
-```
-
-🔹 **For manual installation, see [Manual Installation](#manual-installation)**
-
----
-
-## 🛠️ **Installation Guide (Proxmox LXC Container)**  
-
-### **1️⃣ Create a Proxmox LXC Container**
-1. Open **Proxmox Web Interface** → Click on **"Create CT"**  
-2. **General Settings**:  
-   - Name: `Minecraft-LXC`  
-   - Set a **password** for the Root-User  
-
-3. **Template Selection**:  
-   - Choose a **Debian 11/12** or **Ubuntu 22.04** template.  
-
-4. **Resources:**  
-   - **🖥️ CPU:** Minimum **2 vCPUs**, recommended **4 vCPUs**  
-   - **💾 RAM:** Minimum **4GB**, recommended **8GB**  
-   - **💾 Disk Storage:** Minimum **10GB**, recommended **20GB**  
-
-5. **Network Settings:**  
-   - **🌐 Network Device:** `eth0`  
-   - **🌉 Bridge:** `vmbr0` *(adjust if needed)*  
-   - **IPv4:** Static  
-   - **IPv4/CIDR:** `192.168.0.222/24` *(ensure correct CIDR for Fritzbox, e.g. `/24`)*  
-   - **🚪 Gateway (IPv4):** `192.168.0.1` *(Fritzbox default gateway)*  
-   - **🛡️ Firewall:** Enable (Optional)  
-   
-   **If IPv6 is required:**  
-   - **IPv6:** Static or SLAAC  
-   - **IPv6/CIDR:** Set appropriate address if needed  
-
-6. **Advanced Settings:**  
-   - ✅ Enable **"Nesting"** under Features (required for Java & Systemd services)  
-   - ❌ Disable **"Unprivileged Container"** if applications require elevated privileges  
-
-7. **Finalize and start the container.**  
-
-### **2️⃣ Install Required Dependencies**
-After the container is created, log in and install necessary packages:
-```bash
-apt update && apt upgrade -y
+apt update && apt upgrade -y  
 apt install -y curl wget nano screen unzip git openjdk-17-jre-headless
 ```
 
-### **3️⃣ Run the LXC Setup Script**
+### **Run the Minecraft Server Setup Script** ⛏️  
 ```bash
-wget https://raw.githubusercontent.com/TimInTech/minecraft-server-Proxmox/main/setup_minecraft_lxc.sh
-chmod +x setup_minecraft_lxc.sh
+wget https://raw.githubusercontent.com/TimInTech/minecraft-server-Proxmox/main/setup_minecraft.sh  
+chmod +x setup_minecraft.sh  
+./setup_minecraft.sh
+```
+
+---
+
+## 🛠️ **Installation Guide (Proxmox LXC Container)** 📦  
+
+### **1️⃣ Create a Proxmox LXC Container** 🧱  
+- Open Proxmox Web Interface → Click on **"Create CT"**  
+- **General Settings**:  
+  - Name: `Minecraft-LXC`  
+  - Set root user **password**  
+- **Template Selection**:  
+  - Choose a **Debian 11/12** or **Ubuntu 22.04** template  
+- **Resources**:  
+  - CPU: 2 vCPUs (recommended: 4)  
+  - RAM: 4GB (recommended: 8GB)  
+  - Disk Storage: 10GB (recommended: 20GB)  
+- **Network Settings**:  
+  - Network Device: `eth0`  
+  - Bridge: `vmbr0` *(adjust as needed)*  
+  - IPv4: Static (e.g. `192.168.0.222/24`)  
+  - Gateway (IPv4): typically `192.168.0.1`  
+  - Firewall: Enable (optional)  
+- **Advanced Settings**:  
+  - Enable **"Nesting"** (required for Java & systemd)  
+  - Disable **"Unprivileged Container"** if needed  
+
+### **2️⃣ Install Required Dependencies** ⚒️  
+Log into the container and install:  
+```bash
+apt update && apt upgrade -y  
+apt install -y curl wget nano screen unzip git openjdk-17-jre-headless
+```
+
+### **3️⃣ Run the LXC Setup Script** 🧰  
+```bash
+wget https://raw.githubusercontent.com/TimInTech/minecraft-server-Proxmox/main/setup_minecraft_lxc.sh  
+chmod +x setup_minecraft_lxc.sh  
 ./setup_minecraft_lxc.sh
 ```
 
-🔹 **For manual installation, see [Manual Installation](#manual-installation)**
+---
+
+## 🔍 **Troubleshooting & Solutions** 🛑
+
+### **1️⃣ Minecraft server did not start (No Systemd service)** 🚫  
+**Error:** `Unit minecraft.service could not be found.`  
+
+#### **Solution: Create the service manually** 🛠️  
+```bash
+nano /etc/systemd/system/minecraft.service
+```  
+Paste:  
+```ini
+[Unit]
+Description=Minecraft Server ⛏️
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/minecraft
+ExecStart=/bin/bash /opt/minecraft/start.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```  
+Enable the service:  
+```bash
+systemctl daemon-reload  
+systemctl enable minecraft  
+systemctl start minecraft  
+systemctl status minecraft
+```
 
 ---
 
-## 🔧 **Manual Installation**
-For those who prefer a manual setup instead of using the installation script, follow these steps:
+### **2️⃣ `server.jar` is empty** 🧨  
+**Error:** `ls -l /opt/minecraft/` shows the file is 0 bytes.  
 
-### **Manual Steps for VM & LXC**
-1. **Install Dependencies:**
-   ```bash
-   apt update && apt upgrade -y
-   apt install -y curl wget nano screen unzip git openjdk-17-jre-headless
-   ```
-
-2. **Create Minecraft Server Directory:**
-   ```bash
-   mkdir -p /opt/minecraft && cd /opt/minecraft
-   ```
-
-3. **Download Minecraft Server (PaperMC):**
-   ```bash
-   wget -O server.jar https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/259/downloads/paper-1.20.4-259.jar
-   ```
-
-4. **Accept EULA:**
-   ```bash
-   echo "eula=true" > eula.txt
-   ```
-
-5. **Create a Start Script:**
-   ```bash
-   cat <<EOF > start.sh
-   #!/bin/bash
-   java -Xms2G -Xmx4G -jar server.jar nogui
-   EOF
-   chmod +x start.sh
-   ```
-
-6. **Start Server in Screen Session:**
-   ```bash
-   screen -dmS minecraft ./start.sh
-   ```
-
-7. **Check Logs:**
-   ```bash
-   tail -f /opt/minecraft/logs/latest.log
-   ```
-
-8. **To Stop Server:**
-   ```bash
-   systemctl stop minecraft
-   ```
+#### **Solution: Replace the empty `server.jar`** 💾  
+For **PaperMC**:  
+```bash
+wget -O /opt/minecraft/server.jar https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/450/downloads/paper-1.20.4-450.jar
+```  
+For **Vanilla Minecraft**:  
+```bash
+wget -O /opt/minecraft/server.jar https://www.minecraft.net/en-us/download/server
+```  
+Restart the server:  
+```bash
+systemctl restart minecraft
+```
 
 ---
 
-## 🤝 **Contribute**
-- Found a bug? **🐛 Open an Issue**  
-- Want to improve the script? **⚙️ Submit a Pull Request**  
+### **3️⃣ Firewall (`ufw`) is inactive** 🔥  
+**Solution:** Open the Minecraft port:  
+```bash
+ufw allow 25565/tcp  
+ufw allow 25565/tcp6  
+ufw enable
+```
 
-🚀 Happy gaming! 🎮
+---
+
+## 🔧 **Manual Installation** 🗜️  
+
+### **Steps for VM & LXC**  
+1️⃣ **Install dependencies**:  
+```bash
+apt update && apt upgrade -y  
+apt install -y curl wget nano screen unzip git openjdk-17-jre-headless
+```  
+
+2️⃣ **Create server directory**:  
+```bash
+mkdir -p /opt/minecraft && cd /opt/minecraft
+```  
+
+3️⃣ **Download `server.jar`**:  
+```bash
+wget -O server.jar https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/450/downloads/paper-1.20.4-450.jar
+```  
+
+4️⃣ **Accept EULA**:  
+```bash
+echo "eula=true" > eula.txt
+```  
+
+5️⃣ **Create a start script**:  
+```bash
+cat <<EOF > start.sh
+#!/bin/bash
+java -Xms2G -Xmx4G -jar server.jar nogui
+EOF
+chmod +x start.sh
+```  
+
+6️⃣ **Setup Systemd Service**:  
+```bash
+nano /etc/systemd/system/minecraft.service
+```  
+Paste:  
+```ini
+[Unit]
+Description=Minecraft Server ⛏️
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/minecraft
+ExecStart=/bin/bash /opt/minecraft/start.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```  
+
+7️⃣ **Start the server**:  
+```bash
+systemctl daemon-reload  
+systemctl enable minecraft  
+systemctl start minecraft  
+tail -f /opt/minecraft/logs/latest.log  # Monitor logs 🧾
+```  
+
+---
+
+## 🤝 **Contribute** 🌟  
+- Found a bug? 🐛 **Open an Issue**  
+- Want to improve the script? ⚙️ **Submit a Pull Request**  
+
+ 💎 **Happy crafting!** 🎮  
