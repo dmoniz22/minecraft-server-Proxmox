@@ -49,7 +49,7 @@ By using this link, you support the project at no additional cost to you. Thank 
 
 8. **Finalize the installation and update the system:**  
    ```bash
-   apt update && apt full-upgrade -y
+   apt update && apt upgrade -y
    apt install -y curl wget nano screen unzip git openjdk-17-jre-headless
    ```
 
@@ -64,70 +64,106 @@ chmod +x setup_minecraft.sh
 
 ---
 
-## 🔍 **Troubleshooting & Solutions**
+## 🛠️ **Installation Guide (Proxmox LXC Container)**  
 
-### **1️⃣ Minecraft server did not start because no Systemd service exists**
-**Error:** `Unit minecraft.service could not be found.`
+### **1️⃣ Create a Proxmox LXC Container**
+1. Open **Proxmox Web Interface** → Click on **"Create CT"**  
+2. **General Settings**:  
+   - Name: `Minecraft-LXC`  
+   - Set a **password** for the Root-User  
 
-#### **Solution: Create the service manually**
-Create a Systemd service file for the Minecraft server:
+3. **Template Selection**:  
+   - Choose a **Debian 11/12** or **Ubuntu 22.04** template.  
+
+4. **Resources:**  
+   - **🖥️ CPU:** Minimum **2 vCPUs**, recommended **4 vCPUs**  
+   - **💾 RAM:** Minimum **4GB**, recommended **8GB**  
+   - **💾 Disk Storage:** Minimum **10GB**, recommended **20GB**  
+
+5. **Network Settings:**  
+   - **🌐 Network Device:** `eth0`  
+   - **🌉 Bridge:** `vmbr0` *(adjust if needed)*  
+   - **IPv4:** Static  
+   - **IPv4/CIDR:** `192.168.0.222/24` *(ensure correct CIDR for Fritzbox, e.g. `/24`)*  
+   - **🚪 Gateway (IPv4):** `192.168.0.1` *(Fritzbox default gateway)*  
+   - **🛡️ Firewall:** Enable (Optional)  
+   
+   **If IPv6 is required:**  
+   - **IPv6:** Static or SLAAC  
+   - **IPv6/CIDR:** Set appropriate address if needed  
+
+6. **Advanced Settings:**  
+   - ✅ Enable **"Nesting"** under Features (required for Java & Systemd services)  
+   - ❌ Disable **"Unprivileged Container"** if applications require elevated privileges  
+
+7. **Finalize and start the container.**  
+
+### **2️⃣ Install Required Dependencies**
+After the container is created, log in and install necessary packages:
 ```bash
-nano /etc/systemd/system/minecraft.service
+apt update && apt upgrade -y
+apt install -y curl wget nano screen unzip git openjdk-17-jre-headless
 ```
-Insert the following content:
-```ini
-[Unit]
-Description=Minecraft Server
-After=network.target
 
-[Service]
-User=root
-WorkingDirectory=/opt/minecraft
-ExecStart=/bin/bash /opt/minecraft/start.sh
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-Save with `CTRL + X`, `Y`, `ENTER`.
-
-Then enable and start the service:
+### **3️⃣ Run the LXC Setup Script**
 ```bash
-systemctl daemon-reload
-systemctl enable minecraft
-systemctl start minecraft
-systemctl status minecraft
+wget https://raw.githubusercontent.com/TimInTech/minecraft-server-Proxmox/main/setup_minecraft_lxc.sh
+chmod +x setup_minecraft_lxc.sh
+./setup_minecraft_lxc.sh
 ```
 
-### **2️⃣ `server.jar` is empty**
-**Error:** `ls -l /opt/minecraft/` shows that the file is 0 bytes:
-```bash
--rw-r--r-- 1 root root  0 Mar 14 00:27 server.jar
-```
+🔹 **For manual installation, see [Manual Installation](#manual-installation)**
 
-#### **Solution: Download a valid `server.jar` and replace the empty file**
-For PaperMC:
-```bash
-wget -O /opt/minecraft/server.jar https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/450/downloads/paper-1.20.4-450.jar
-```
-For Vanilla Minecraft:
-```bash
-wget -O /opt/minecraft/server.jar https://www.minecraft.net/en-us/download/server
-```
-(Check the official [Minecraft website](https://www.minecraft.net/en-us/download/server) for the latest version.)
+---
 
-Then restart the server:
-```bash
-systemctl restart minecraft
-```
+## 🔧 **Manual Installation**
+For those who prefer a manual setup instead of using the installation script, follow these steps:
 
-### **3️⃣ `ufw` is inactive**
-**Solution:** If using a firewall, open the Minecraft port:
-```bash
-ufw allow 25565/tcp
-ufw allow 25565/tcp6
-ufw enable
-```
+### **Manual Steps for VM & LXC**
+1. **Install Dependencies:**
+   ```bash
+   apt update && apt upgrade -y
+   apt install -y curl wget nano screen unzip git openjdk-17-jre-headless
+   ```
+
+2. **Create Minecraft Server Directory:**
+   ```bash
+   mkdir -p /opt/minecraft && cd /opt/minecraft
+   ```
+
+3. **Download Minecraft Server (PaperMC):**
+   ```bash
+   wget -O server.jar https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/259/downloads/paper-1.20.4-259.jar
+   ```
+
+4. **Accept EULA:**
+   ```bash
+   echo "eula=true" > eula.txt
+   ```
+
+5. **Create a Start Script:**
+   ```bash
+   cat <<EOF > start.sh
+   #!/bin/bash
+   java -Xms2G -Xmx4G -jar server.jar nogui
+   EOF
+   chmod +x start.sh
+   ```
+
+6. **Start Server in Screen Session:**
+   ```bash
+   screen -dmS minecraft ./start.sh
+   ```
+
+7. **Check Logs:**
+   ```bash
+   tail -f /opt/minecraft/logs/latest.log
+   ```
+
+8. **To Stop Server:**
+   ```bash
+   systemctl stop minecraft
+   ```
 
 ---
 
