@@ -4,23 +4,15 @@
 # Tested on Debian 11/12 and Ubuntu 24.04
 # Author: TimInTech
 
-set -e
+set -e  # Exit on any error
 
-# Create a dedicated user for the server
-if ! id -u mcserver > /dev/null 2>&1; then
-  sudo useradd -m -r -d /opt/minecraft-bedrock mcserver
-fi
-
-# Install required dependencies if not already installed
-for pkg in unzip wget screen curl; do
-  if ! dpkg -l | grep -qw $pkg; then
-    sudo apt update
-    sudo apt install -y $pkg
-  fi
-done
+# Install required dependencies
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y unzip wget screen curl
 
 # Set up server directory
-sudo -u mcserver mkdir -p /opt/minecraft-bedrock
+sudo mkdir -p /opt/minecraft-bedrock
+sudo chown $(whoami):$(whoami) /opt/minecraft-bedrock
 cd /opt/minecraft-bedrock
 
 # Fetch the latest Bedrock server URL
@@ -49,7 +41,7 @@ if ! unzip -tq bedrock-server.zip >/dev/null; then
 fi
 
 # Extract the server files
-sudo -u mcserver unzip -o bedrock-server.zip
+unzip -o bedrock-server.zip
 rm -f bedrock-server.zip
 
 # Make sure the server binary exists
@@ -65,9 +57,14 @@ LD_LIBRARY_PATH=. ./bedrock_server
 EOF
 
 chmod +x start.sh
-chown mcserver:mcserver start.sh
+
+# Ensure screen is installed before starting the server
+if ! command -v screen &> /dev/null; then
+  echo "ERROR: 'screen' is not installed. Install it with 'sudo apt install screen'."
+  exit 1
+fi
 
 # Start the server in a detached screen session
-sudo -u mcserver screen -dmS bedrock ./start.sh
+screen -dmS bedrock ./start.sh
 
-echo "Setup complete! Use 'sudo -u mcserver screen -r bedrock' to open the console."
+echo "Setup complete! Use 'screen -r bedrock' to open the console."
