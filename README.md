@@ -18,7 +18,7 @@ Using this link supports the project at no additional cost to you. Thank you! �
 ✅ Works with **Proxmox VM** or **LXC container**  
 ✅ **Performance optimizations** included (RAM allocation, CPU prioritization)  
 ✅ Customizable settings (world generation, plugins, mods)  
-✅ **Minecraft-themed emojis** throughout the guide  
+✅ **Troubleshooting guide included** for common issues  
 
 ---
 
@@ -29,7 +29,7 @@ Using this link supports the project at no additional cost to you. Thank you! �
 - **General Settings**:  
   - Name: `Minecraft-Server`  
 - **OS Selection**:  
-  - Use a **Debian 11/12** or **Ubuntu 22.04** ISO image  
+  - Use a **Debian 11/12** or **Ubuntu 24.04** ISO image  
 - **System Configuration**:  
   - BIOS: **OVMF (UEFI) or SeaBIOS**  
   - Machine Type: **q35** (recommended)  
@@ -43,13 +43,13 @@ Using this link supports the project at no additional cost to you. Thank you! �
   - Model: **VirtIO**  
   - Enable **QEMU Guest Agent** after installation  
 
-### **Install Dependencies** ⚙️  
+### **2️⃣ Install Dependencies** ⚙️  
 ```bash
 apt update && apt upgrade -y  
-apt install -y curl wget nano screen unzip git openjdk-17-jre-headless
+apt install -y curl wget nano screen unzip git openjdk-21-jre-headless
 ```
 
-### **Run the Minecraft Server Setup Script** ⛏️  
+### **3️⃣ Run the Minecraft Server Setup Script** ⛏️  
 ```bash
 wget https://raw.githubusercontent.com/TimInTech/minecraft-server-Proxmox/main/setup_minecraft.sh  
 chmod +x setup_minecraft.sh  
@@ -66,7 +66,7 @@ chmod +x setup_minecraft.sh
   - Name: `Minecraft-LXC`  
   - Set root user **password**  
 - **Template Selection**:  
-  - Choose a **Debian 11/12** or **Ubuntu 22.04** template  
+  - Choose a **Debian 11/12** or **Ubuntu 24.04** template  
 - **Resources**:  
   - CPU: 2 vCPUs (recommended: 4)  
   - RAM: 4GB (recommended: 8GB)  
@@ -85,7 +85,7 @@ chmod +x setup_minecraft.sh
 Log into the container and install:  
 ```bash
 apt update && apt upgrade -y  
-apt install -y curl wget nano screen unzip git openjdk-17-jre-headless
+apt install -y curl wget nano screen unzip git openjdk-21-jre-headless
 ```
 
 ### **3️⃣ Run the LXC Setup Script** 🧰  
@@ -99,59 +99,34 @@ chmod +x setup_minecraft_lxc.sh
 
 ## 🔍 **Troubleshooting & Solutions** 🛑
 
-### **1️⃣ Minecraft server did not start (No Systemd service)** 🚫  
-**Error:** `Unit minecraft.service could not be found.`  
-
-#### **Solution: Create the service manually** 🛠️  
+### **1️⃣ Java Version Error (Unsupported Class Version)** 🚫  
+**Error:** `org/bukkit/craftbukkit/Main has been compiled by a more recent version of the Java Runtime.`  
+#### **Solution:** Install the correct Java version  
 ```bash
-nano /etc/systemd/system/minecraft.service
-```  
-Paste:  
-```ini
-[Unit]
-Description=Minecraft Server ⛏️
-After=network.target
-
-[Service]
-User=root
-WorkingDirectory=/opt/minecraft
-ExecStart=/bin/bash /opt/minecraft/start.sh
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```  
-Enable the service:  
-```bash
-systemctl daemon-reload  
-systemctl enable minecraft  
-systemctl start minecraft  
-systemctl status minecraft
+apt install -y openjdk-21-jre-headless
 ```
-
----
-
-### **2️⃣ `server.jar` is empty** 🧨  
-**Error:** `ls -l /opt/minecraft/` shows the file is 0 bytes.  
-
-#### **Solution: Replace the empty `server.jar`** 💾  
-For **PaperMC**:  
-```bash
-wget -O /opt/minecraft/server.jar https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/450/downloads/paper-1.20.4-450.jar
-```  
-For **Vanilla Minecraft**:  
-```bash
-wget -O /opt/minecraft/server.jar https://www.minecraft.net/en-us/download/server
-```  
 Restart the server:  
 ```bash
 systemctl restart minecraft
 ```
 
----
+### **2️⃣ Server Not Starting (`start.sh` missing)** ⚠️  
+```bash
+cd /opt/minecraft
+nano start.sh
+```
+Paste:
+```bash
+#!/bin/bash
+java -Xms2G -Xmx4G -jar server.jar nogui
+```
+Then:
+```bash
+chmod +x start.sh
+./start.sh
+```
 
-### **3️⃣ Firewall (`ufw`) is inactive** 🔥  
-**Solution:** Open the Minecraft port:  
+### **3️⃣ Firewall Issues (`ufw` inactive)** 🔥  
 ```bash
 ufw allow 25565/tcp  
 ufw allow 25565/tcp6  
@@ -160,71 +135,9 @@ ufw enable
 
 ---
 
-## 🔧 **Manual Installation** 🗜️  
-
-### **Steps for VM & LXC**  
-1️⃣ **Install dependencies**:  
-```bash
-apt update && apt upgrade -y  
-apt install -y curl wget nano screen unzip git openjdk-17-jre-headless
-```  
-
-2️⃣ **Create server directory**:  
-```bash
-mkdir -p /opt/minecraft && cd /opt/minecraft
-```  
-
-3️⃣ **Download `server.jar`**:  
-```bash
-wget -O server.jar https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/450/downloads/paper-1.20.4-450.jar
-```  
-
-4️⃣ **Accept EULA**:  
-```bash
-echo "eula=true" > eula.txt
-```  
-
-5️⃣ **Create a start script**:  
-```bash
-cat <<EOF > start.sh
-#!/bin/bash
-java -Xms2G -Xmx4G -jar server.jar nogui
-EOF
-chmod +x start.sh
-```  
-
-6️⃣ **Setup Systemd Service**:  
-```bash
-nano /etc/systemd/system/minecraft.service
-```  
-Paste:  
-```ini
-[Unit]
-Description=Minecraft Server ⛏️
-After=network.target
-
-[Service]
-User=root
-WorkingDirectory=/opt/minecraft
-ExecStart=/bin/bash /opt/minecraft/start.sh
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```  
-
-7️⃣ **Start the server**:  
-```bash
-systemctl daemon-reload  
-systemctl enable minecraft  
-systemctl start minecraft  
-tail -f /opt/minecraft/logs/latest.log  # Monitor logs 🧾
-```  
-
----
-
 ## 🤝 **Contribute** 🌟  
 - Found a bug? 🐛 **Open an Issue**  
 - Want to improve the script? ⚙️ **Submit a Pull Request**  
 
  💎 **Happy crafting!** 🎮  
+
