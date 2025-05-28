@@ -7,12 +7,12 @@
 set -e  # Exit on any error
 
 # Install required dependencies
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y unzip wget screen curl
+apt update && sudo apt upgrade -y
+apt install -y unzip wget screen curl
 
 # Set up server directory
-sudo mkdir -p /opt/minecraft-bedrock
-sudo chown $(whoami):$(whoami) /opt/minecraft-bedrock
+mkdir -p /opt/minecraft-bedrock
+chown $(whoami):$(whoami) /opt/minecraft-bedrock
 cd /opt/minecraft-bedrock
 
 # Fetch the latest Bedrock server URL
